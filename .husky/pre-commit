@@ -1,7 +1,0 @@
-#!/bin/sh
-
-# run prettier on staged files
-npx lint-staged
-
-# typecheck
-make lint

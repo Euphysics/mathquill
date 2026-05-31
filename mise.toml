@@ -1,0 +1,11 @@
+[settings]
+lockfile = true
+experimental = true
+
+[tools]
+lefthook = "2.1.9"
+node = "24.16.0"
+pnpm = "11.5.0"
+
+[hooks]
+postinstall = "lefthook install"
