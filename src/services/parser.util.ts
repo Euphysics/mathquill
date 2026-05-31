@@ -207,31 +207,25 @@ class Parser<T> {
   static whitespace = Parser.regex(/^\s+/);
   static optWhitespace = Parser.regex(/^\s*/);
 
-  static any: Parser<string> = new Parser(function (
-    stream,
-    onSuccess,
-    onFailure
-  ) {
-    if (!stream) return onFailure(stream, 'expected any character');
+  static any: Parser<string> = new Parser(
+    function (stream, onSuccess, onFailure) {
+      if (!stream) return onFailure(stream, 'expected any character');
 
-    return onSuccess(stream.slice(1), stream.charAt(0));
-  });
+      return onSuccess(stream.slice(1), stream.charAt(0));
+    }
+  );
 
-  static all: Parser<string> = new Parser(function (
-    stream,
-    onSuccess,
-    _onFailure
-  ) {
-    return onSuccess('', stream);
-  });
+  static all: Parser<string> = new Parser(
+    function (stream, onSuccess, _onFailure) {
+      return onSuccess('', stream);
+    }
+  );
 
-  static eof: Parser<string> = new Parser(function (
-    stream,
-    onSuccess,
-    onFailure
-  ) {
-    if (stream) return onFailure(stream, 'expected EOF');
+  static eof: Parser<string> = new Parser(
+    function (stream, onSuccess, onFailure) {
+      if (stream) return onFailure(stream, 'expected EOF');
 
-    return onSuccess(stream, stream);
-  });
+      return onSuccess(stream, stream);
+    }
+  );
 }

@@ -215,7 +215,7 @@ If the DOM node is not a child of the root DOM node of this API instance, `domNo
 You can pass the result of `.domNodeToSpan(...)` into `.selection(...)` to select a given node:
 
 ```js
-el = document.querySelector(".mq-binary-operator");
+el = document.querySelector('.mq-binary-operator');
 const span = mq.domNodeToSpan(el);
 mq.selection(span);
 ```
@@ -333,7 +333,6 @@ if (!mathField.isUserSelecting()) {
   mathField.moveToLeftEnd();
 }
 ```
-
 
 [`aria-label`]: https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/ARIA_Techniques/Using_the_aria-label_attribute
 

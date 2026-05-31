@@ -483,7 +483,7 @@ class Letter extends Variable {
     var maxLength = autoParenthesizedFunctions._maxLength || 0;
     var autoOperatorNames = cursor.options.autoOperatorNames;
     while (l instanceof Letter && i < maxLength) {
-      (str = l.letter + str), (l = l[L]), (i += 1);
+      ((str = l.letter + str), (l = l[L]), (i += 1));
     }
     // check for an autoParenthesized functions, going thru substrings longest to shortest
     // only allow autoParenthesized functions that are also autoOperatorNames

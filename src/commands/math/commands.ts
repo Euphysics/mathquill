@@ -1505,7 +1505,7 @@ class Bracket extends DelimsNode {
         return undefined;
       });
     } else {
-      (brack = this), (side = brack.side);
+      ((brack = this), (side = brack.side));
       if (brack.replacedFragment) brack.side = 0;
       // wrapping seln, don't be one-sided
       else if (cursor[-side as Direction]) {
