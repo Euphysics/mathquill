@@ -1,7 +1,6 @@
 {
   "name": "mathquill",
   "version": "0.10.1",
-  "type": "module",
   "description": "Easily type math in your webapp",
   "license": "MPL-2.0",
   "repository": {
@@ -13,28 +12,26 @@
     "build/fonts/Symbola.*",
     "quickstart.html"
   ],
+  "type": "module",
   "scripts": {
     "build": "node script/build.js all",
-    "build:all": "node script/build.js all",
-    "build:dev": "node script/build.js dev",
-    "build:js": "node script/build.js js",
-    "build:css": "node script/build.js css",
-    "build:font": "node script/build.js font",
     "build:basic": "node script/build.js basic",
-    "build:basic:unminified": "node script/build.js unminified-basic",
-    "build:test": "node script/build.js test",
+    "build:dev": "node script/build.js dev",
+    "build:raw": "node script/build.js",
     "build:test-artifacts": "node script/build.js test-artifacts",
+    "build:tsdown": "tsdown --config tsdown.config.ts --filter minify-js-main --filter minify-css-main",
     "clean": "node script/build.js clean",
-    "lint": "tsc --noEmit && tsc --noEmit -p test/tsconfig.public-types-test.json",
     "format": "oxfmt",
+    "lint": "tsc --noEmit && tsc --noEmit -p test/tsconfig.public-types-test.json",
     "server": "node script/test_server.js"
   },
   "devDependencies": {
+    "@tsdown/css": "^0.22.1",
     "@types/mocha": "^10.0.10",
     "less": "^4.6.4",
     "mocha": "^11.7.6",
     "oxfmt": "^0.52.0",
-    "typescript": "^6.0.3",
-    "uglify-js": "^3.19.3"
+    "tsdown": "^0.22.1",
+    "typescript": "^6.0.3"
   }
 }

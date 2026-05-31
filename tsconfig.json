@@ -21,5 +21,6 @@
     "pretty": true,
     "types": ["mocha"],
     "typeRoots": ["./node_modules/@types"]
-  }
+  },
+  "exclude": ["tsdown.config.ts"]
 }

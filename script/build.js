@@ -15,6 +15,7 @@ const BUILD_DIR = path.join(ROOT, 'build');
 const INTRO = path.join(SRC_DIR, 'intro.js');
 const OUTRO = path.join(SRC_DIR, 'outro.js');
 const CSS_MAIN = path.join(SRC_DIR, 'css', 'main.less');
+const UNIT_DIR = path.join(ROOT, 'test', 'unit');
 
 const BASE_SOURCES = [
   'utils.ts',
@@ -39,20 +40,55 @@ const BASE_SOURCES = [
   'services/textarea.ts'
 ].map((file) => path.join(SRC_DIR, file));
 
-const SOURCES_FULL = BASE_SOURCES.concat([
-  path.join(SRC_DIR, 'commands/math.ts'),
-  path.join(SRC_DIR, 'commands/text.ts'),
-  path.join(SRC_DIR, 'commands/math/advancedSymbols.ts'),
-  path.join(SRC_DIR, 'commands/math/basicSymbols.ts'),
-  path.join(SRC_DIR, 'commands/math/commands.ts'),
-  path.join(SRC_DIR, 'commands/math/LatexCommandInput.ts')
-]);
+const SOURCE_SETS = {
+  full: BASE_SOURCES.concat([
+    path.join(SRC_DIR, 'commands/math.ts'),
+    path.join(SRC_DIR, 'commands/text.ts'),
+    path.join(SRC_DIR, 'commands/math/advancedSymbols.ts'),
+    path.join(SRC_DIR, 'commands/math/basicSymbols.ts'),
+    path.join(SRC_DIR, 'commands/math/commands.ts'),
+    path.join(SRC_DIR, 'commands/math/LatexCommandInput.ts')
+  ]),
+  basic: BASE_SOURCES.concat([
+    path.join(SRC_DIR, 'commands/math.ts'),
+    path.join(SRC_DIR, 'commands/math/basicSymbols.ts'),
+    path.join(SRC_DIR, 'commands/math/commands.ts')
+  ])
+};
 
-const SOURCES_BASIC = BASE_SOURCES.concat([
-  path.join(SRC_DIR, 'commands/math.ts'),
-  path.join(SRC_DIR, 'commands/math/basicSymbols.ts'),
-  path.join(SRC_DIR, 'commands/math/commands.ts')
-]);
+const TEST_SUPPORT = [
+  path.join(ROOT, 'test', 'support', 'assert.ts'),
+  path.join(ROOT, 'test', 'support', 'trigger-event.ts'),
+  path.join(ROOT, 'test', 'support', 'jquery-stub.ts')
+];
+
+const MINIFY_FILTERS = {
+  main: ['minify-js-main', 'minify-css-main'],
+  basic: ['minify-js-basic']
+};
+
+const REQUIRED_FOR_MINIFY = {
+  main: ['mathquill.js', 'mathquill.css'],
+  basic: ['mathquill-basic.js']
+};
+
+const COMMAND_ALIASES = {
+  uglify: 'minify'
+};
+
+const COMMAND_STEPS = {
+  all: ['font', 'css', 'js', 'minify'],
+  dev: ['font', 'css', 'js'],
+  js: ['js'],
+  minify: ['minify'],
+  css: ['css'],
+  font: ['font'],
+  basic: ['basic-js', 'minify-basic', 'basic-css'],
+  'unminified-basic': ['basic-js', 'basic-css'],
+  test: ['test-js'],
+  'test-artifacts': ['font', 'css', 'js', 'basic-js', 'basic-css', 'test-js'],
+  clean: ['clean']
+};
 
 function readVersion() {
   const packageJsonPath = path.join(ROOT, 'package.json');
@@ -62,7 +98,7 @@ function readVersion() {
 
 function escapeNonAscii(source) {
   return source.replace(/[^\x00-\x7F]/g, (char) => {
-    return `\\u${(`000${char.charCodeAt(0).toString(16)}`).slice(-4)}`;
+    return `\\u${`000${char.charCodeAt(0).toString(16)}`.slice(-4)}`;
   });
 }
 
@@ -77,7 +113,9 @@ function transpileBundle(filePaths, options) {
   const concatenated = filePaths
     .map((filePath) => fs.readFileSync(filePath, 'utf8'))
     .join('\n');
-  const tsInput = options.escapeUnicode ? escapeNonAscii(concatenated) : concatenated;
+  const tsInput = options.escapeUnicode
+    ? escapeNonAscii(concatenated)
+    : concatenated;
 
   const transpiled = ts.transpileModule(tsInput, {
     compilerOptions: {
@@ -100,27 +138,40 @@ function writeBuildFile(relativePath, contents) {
   return outputPath;
 }
 
-function minify(inputPath, outputName) {
-  const uglifyBin = path.join(ROOT, 'node_modules', '.bin', 'uglifyjs');
-  const outputPath = path.join(BUILD_DIR, outputName);
-
+function runTsdownMinify(filters) {
+  const filterArgs = filters.flatMap((filterName) => ['--filter', filterName]);
   const result = spawnSync(
-    uglifyBin,
-    ['--mangle', '--compress', 'hoist_vars=true', '--comments', '/maintainers@mathquill.com/'],
-    {
-      cwd: ROOT,
-      input: fs.readFileSync(inputPath, 'utf8'),
-      encoding: 'utf8'
-    }
+    'pnpm',
+    ['exec', 'tsdown', '--config', 'tsdown.config.ts', ...filterArgs],
+    { cwd: ROOT, encoding: 'utf8' }
   );
 
   if (result.error) throw result.error;
   if (result.status !== 0) {
-    throw new Error(result.stderr || `uglify failed with exit code ${result.status}`);
+    throw new Error(
+      result.stderr || `tsdown failed with exit code ${result.status}`
+    );
+  }
+  if (result.stdout) process.stdout.write(result.stdout);
+}
+
+function minifyArtifacts(mode) {
+  const required = REQUIRED_FOR_MINIFY[mode];
+  const missing = required.filter(
+    (file) => !fs.existsSync(path.join(BUILD_DIR, file))
+  );
+  if (missing.length > 0) {
+    if (mode === 'main') {
+      throw new Error(
+        'build/mathquill.js or build/mathquill.css is missing. Run "node script/build.js dev" first.'
+      );
+    }
+    throw new Error(
+      'build/mathquill-basic.js is missing. Run "node script/build.js unminified-basic" first.'
+    );
   }
 
-  fs.writeFileSync(outputPath, result.stdout, 'utf8');
-  console.log(`built ${path.relative(ROOT, outputPath)}`);
+  runTsdownMinify(MINIFY_FILTERS[mode]);
 }
 
 async function buildCss(options) {
@@ -136,7 +187,10 @@ async function buildCss(options) {
   });
 
   const withReplacements = applyBuildReplacements(rendered.css, options);
-  writeBuildFile(options.basic ? 'mathquill-basic.css' : 'mathquill.css', withReplacements);
+  writeBuildFile(
+    options.basic ? 'mathquill-basic.css' : 'mathquill.css',
+    withReplacements
+  );
 }
 
 function copyFonts() {
@@ -146,23 +200,23 @@ function copyFonts() {
 
   fs.rmSync(targetDir, { recursive: true, force: true });
   fs.cpSync(sourceDir, targetDir, { recursive: true });
-  console.log(`copied ${path.relative(ROOT, sourceDir)} -> ${path.relative(ROOT, targetDir)}`);
+  console.log(
+    `copied ${path.relative(ROOT, sourceDir)} -> ${path.relative(ROOT, targetDir)}`
+  );
 }
 
 function getUnitTests() {
-  const unitDir = path.join(ROOT, 'test', 'unit');
   return fs
-    .readdirSync(unitDir)
+    .readdirSync(UNIT_DIR)
     .filter((file) => /\.test\.(js|ts)$/.test(file))
     .sort()
-    .map((file) => path.join(unitDir, file));
+    .map((file) => path.join(UNIT_DIR, file));
 }
 
-function buildJs(options) {
-  const sources = options.basic ? SOURCES_BASIC : SOURCES_FULL;
-  const outputName = options.basic ? 'mathquill-basic.js' : 'mathquill.js';
+function buildJs(options, mode = 'full') {
+  const outputName = mode === 'basic' ? 'mathquill-basic.js' : 'mathquill.js';
 
-  const output = transpileBundle([INTRO].concat(sources, [OUTRO]), {
+  const output = transpileBundle([INTRO].concat(SOURCE_SETS[mode], [OUTRO]), {
     version: options.version,
     classPrefix: options.classPrefix,
     escapeUnicode: true
@@ -171,12 +225,12 @@ function buildJs(options) {
 }
 
 function buildTestJs(options) {
-  const testSupport = [
-    path.join(ROOT, 'test', 'support', 'assert.ts'),
-    path.join(ROOT, 'test', 'support', 'trigger-event.ts'),
-    path.join(ROOT, 'test', 'support', 'jquery-stub.ts')
-  ];
-  const inputFiles = [INTRO].concat(SOURCES_FULL, testSupport, getUnitTests(), [OUTRO]);
+  const inputFiles = [INTRO].concat(
+    SOURCE_SETS.full,
+    TEST_SUPPORT,
+    getUnitTests(),
+    [OUTRO]
+  );
 
   const output = transpileBundle(inputFiles, {
     version: options.version,
@@ -194,78 +248,39 @@ async function run(commandName) {
 
   const options = { version, classPrefix, omitFontFace };
 
-  switch (commandName) {
-    case 'all': {
-      copyFonts();
-      await buildCss(options);
-      const mainJs = buildJs({ ...options, basic: false });
-      minify(mainJs, 'mathquill.min.js');
-      break;
-    }
-    case 'dev': {
-      copyFonts();
-      await buildCss(options);
-      buildJs({ ...options, basic: false });
-      break;
-    }
-    case 'js': {
-      buildJs({ ...options, basic: false });
-      break;
-    }
-    case 'uglify': {
-      const mainJs = path.join(BUILD_DIR, 'mathquill.js');
-      if (!fs.existsSync(mainJs)) {
-        throw new Error('build/mathquill.js is missing. Run "node script/build.js js" first.');
-      }
-      minify(mainJs, 'mathquill.min.js');
-      break;
-    }
-    case 'css': {
-      await buildCss(options);
-      break;
-    }
-    case 'font': {
-      copyFonts();
-      break;
-    }
-    case 'basic': {
-      const basicJs = buildJs({ ...options, basic: true });
-      minify(basicJs, 'mathquill-basic.min.js');
-      await buildCss({ ...options, basic: true });
-      break;
-    }
-    case 'unminified-basic': {
-      buildJs({ ...options, basic: true });
-      await buildCss({ ...options, basic: true });
-      break;
-    }
-    case 'test': {
-      buildTestJs(options);
-      break;
-    }
-    case 'test-artifacts': {
-      copyFonts();
-      await buildCss(options);
-      buildJs({ ...options, basic: false });
-      buildJs({ ...options, basic: true });
-      await buildCss({ ...options, basic: true });
-      buildTestJs(options);
-      break;
-    }
-    case 'clean': {
+  const resolvedCommand = COMMAND_ALIASES[commandName] || commandName;
+  const steps = COMMAND_STEPS[resolvedCommand];
+
+  if (!steps) {
+    const allCommands = Object.keys(COMMAND_STEPS)
+      .concat(Object.keys(COMMAND_ALIASES))
+      .sort();
+    throw new Error(
+      `Unknown command "${commandName}". Expected one of: ${allCommands.join(', ')}`
+    );
+  }
+
+  const stepHandlers = {
+    font: async () => copyFonts(),
+    css: async () => buildCss(options),
+    js: async () => buildJs(options, 'full'),
+    minify: async () => minifyArtifacts('main'),
+    'basic-js': async () => buildJs(options, 'basic'),
+    'minify-basic': async () => minifyArtifacts('basic'),
+    'basic-css': async () => buildCss({ ...options, basic: true }),
+    'test-js': async () => buildTestJs(options),
+    clean: async () => {
       fs.rmSync(BUILD_DIR, { recursive: true, force: true });
       console.log('cleaned build directory');
-      break;
     }
-    default: {
-      throw new Error(
-        `Unknown command "${commandName}". Expected one of: all, dev, js, uglify, css, font, basic, unminified-basic, test, test-artifacts, clean`
-      );
-    }
+  };
+
+  for (const step of steps) {
+    await stepHandlers[step]();
   }
 }
 
-const commandName = process.argv[2] || 'all';
+const commandName = process.argv.slice(2).find((arg) => arg !== '--') || 'all';
 run(commandName).catch((err) => {
   console.error(err.message || err);
   process.exit(1);
