@@ -13,7 +13,7 @@ var HOST = process.env.HOST || '0.0.0.0';
 http.createServer(serveRequest).listen(PORT, HOST);
 console.log('listening on ' + HOST + ':' + PORT);
 run_make_test();
-'src test Makefile package.json'.split(' ').forEach(function (filename) {
+'src test package.json script/build.js'.split(' ').forEach(function (filename) {
   recursivelyWatch(filename, run_make_test);
 });
 
@@ -86,11 +86,13 @@ function enqueueOrDo(cb) {
 function run_make_test() {
   if (q) return;
   q = [];
-  console.log('[%s]\nmake test', new Date().toISOString());
-  var make_test = child_process.exec('make test', { env: process.env });
-  make_test.stdout.pipe(process.stdout, { end: false });
-  make_test.stderr.pipe(process.stderr, { end: false });
-  make_test.on('exit', function (code) {
+  console.log('[%s]\npnpm run build:test-artifacts', new Date().toISOString());
+  var build_test = child_process.exec('pnpm run build:test-artifacts', {
+    env: process.env
+  });
+  build_test.stdout.pipe(process.stdout, { end: false });
+  build_test.stderr.pipe(process.stderr, { end: false });
+  build_test.on('exit', function (code) {
     if (code) {
       console.error('Exit Code ' + code);
     } else {

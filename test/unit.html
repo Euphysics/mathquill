@@ -53,7 +53,11 @@
       id="mathquill"
       type="text/javascript"
       src="../build/mathquill.test.js"
-      onerror="alert('couldn\'t find `build/mathquill.test.js`. Please run `make test` before opening this file.')"
+      onerror="
+        alert(
+          'couldn\'t find `build/mathquill.test.js`. Please run `pnpm run build:test-artifacts` before opening this file.'
+        )
+      "
     ></script>
 
     <!-- include MathQuill-basic -->

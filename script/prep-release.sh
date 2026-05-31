@@ -3,19 +3,9 @@ set -e -o pipefail
 die () { printf '\n\tERROR: %s\n\n' "$*"; exit 1; }
 
 #
-# -1. Old versions of npm omit random files due to race condition https://git.io/vooV3
+# -1. Ensure required tooling is available
 #
-equalOrNewer () { # inspired by http://stackoverflow.com/a/25731924/362030
-  printf '%s\n%s\n' "$@" | sort -cnrt . -k 1,1 -k 2,2 -k 3,3 2>/dev/null
-}
-npm_v="$(npm -v)"
-if echo "$npm_v" | grep -q '^2\.'; then
-  equalOrNewer "$npm_v" 2.15.8 \
-    || die 'Your npm@2 version must be >=2.15.8, see https://git.io/vooV3'
-else
-  equalOrNewer "$npm_v" 3.10.1 \
-    || die 'Your npm@3 version must be >=3.10.1, see https://git.io/vooV3'
-fi
+command -v pnpm >/dev/null || die 'pnpm is required but not found in PATH'
 
 #
 # 0. Clean tree & repo state except for CHANGELOG
@@ -44,8 +34,8 @@ echo "1. Bumped package.json version to \""$(node -p 'require("./package.json").
 #
 # 2. Build
 #
-echo '2. make:'
-make 2>&1 | sed 's/^/     /'
+echo '2. pnpm run build:'
+pnpm run build 2>&1 | sed 's/^/     /'
 
 #
 # 3. Package as tarball + zipfile

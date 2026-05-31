@@ -1,22 +1,22 @@
 # Building from Source
 
-Install [Node](http://nodejs.org/#download) if needed. Then run `make`. This installs all of the needed dependencies and creates the full build folder.
+Install [Node](http://nodejs.org/#download) and [pnpm](https://pnpm.io/) if needed. Then run `pnpm install` and `pnpm run build`. This installs dependencies and creates the full build folder.
 
-For developing on MathQuill, run `make dev`. This will skip minifying MathQuill, which can be annoyingly slow.
+For developing on MathQuill, run `pnpm run build:dev`. This skips minifying MathQuill, which can be annoyingly slow.
 
 ## Building a Smaller MathQuill
 
-`make basic` builds a stripped-down version of MathQuill for basic mathematics, without advanced LaTeX commands. This version doesn't allow typed LaTeX backslash commands with `\` or text blocks with `$`, and also won't render any LaTeX commands that can't by typed without `\`. This version of MathQuill's JS is only somewhat smaller, but the font is like 100x smaller.
+`pnpm run build:basic` builds a stripped-down version of MathQuill for basic mathematics, without advanced LaTeX commands. This version doesn't allow typed LaTeX backslash commands with `\` or text blocks with `$`, and also won't render any LaTeX commands that can't by typed without `\`. This version of MathQuill's JS is only somewhat smaller, but the font is like 100x smaller.
 
 To run this smaller version, serve and load `mathquill-basic.{js,min.js,css}` and `fonts/Symbola-basic.{eot,ttf}` instead.
 
 # Testing
 
-Run `make test`, which builds `mathquill.test.js`. Open `test/unit.html` in your browser to see the result of the unit tests. Open `test/visual.html` to see how a variety of expressions are rendering on your branch.
+Run `pnpm run build:test-artifacts`, which builds all browser test assets including `mathquill.test.js`. Open `test/unit.html` in your browser to see the result of the unit tests. Open `test/visual.html` to see how a variety of expressions are rendering on your branch.
 
 # Understanding The Source Code
 
-All the JavaScript that you actually want to read is in `src/`. `build/` is created by `make` to contain the same JS concatenated and minified.
+All the JavaScript that you actually want to read is in `src/`. `build/` is created by `pnpm run build` to contain the same JS concatenated and minified.
 
 All the CSS is in `src/css`. The choice of font isn't settled, and fractions are somewhat arcane, see the Wiki pages ["Fonts"](http://github.com/mathquill/mathquill/wiki/Fonts) and ["Fractions"](http://github.com/mathquill/mathquill/wiki/Fractions).
 
