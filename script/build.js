@@ -1,11 +1,14 @@
 #!/usr/bin/env node
 
-const fs = require('fs');
-const path = require('path');
-const ts = require('typescript');
-const less = require('less');
-const { spawnSync } = require('child_process');
+import { spawnSync } from 'node:child_process';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import less from 'less';
+import ts from 'typescript';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const ROOT = path.resolve(__dirname, '..');
 const SRC_DIR = path.join(ROOT, 'src');
 const BUILD_DIR = path.join(ROOT, 'build');

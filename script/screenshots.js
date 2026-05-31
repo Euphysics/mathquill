@@ -12,8 +12,9 @@
 //   node screenshots.js http://localhost:9292/test/visual.html
 //   node screenshots.js http://google.com
 
-var wd = require('wd');
-var fs = require('fs');
+import fs from 'node:fs';
+import wd from 'wd';
+
 var url = process.argv[2];
 var username = process.env.SAUCE_USERNAME;
 var accessKey = process.env.SAUCE_ACCESS_KEY;

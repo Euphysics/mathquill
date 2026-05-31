@@ -1,6 +1,7 @@
 {
   "name": "mathquill",
   "version": "0.10.1",
+  "type": "module",
   "description": "Easily type math in your webapp",
   "license": "MPL-2.0",
   "repository": {

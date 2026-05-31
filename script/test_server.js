@@ -1,13 +1,13 @@
 // requires
-var http = require('http');
-var path = require('path');
-var url = require('url');
-var fs = require('fs');
-var child_process = require('child_process');
+import { exec } from 'node:child_process';
+import fs from 'node:fs';
+import http from 'node:http';
+import path from 'node:path';
+import url from 'node:url';
 
 // constants
-var PORT = +process.env.PORT || 9292;
-var HOST = process.env.HOST || '0.0.0.0';
+const PORT = +process.env.PORT || 9292;
+const HOST = process.env.HOST || '0.0.0.0';
 
 // main
 http.createServer(serveRequest).listen(PORT, HOST);
@@ -79,7 +79,7 @@ function recursivelyWatch(watchee, cb) {
   });
 }
 
-var q;
+let q;
 function enqueueOrDo(cb) {
   q ? q.push(cb) : cb();
 }
@@ -87,7 +87,7 @@ function run_make_test() {
   if (q) return;
   q = [];
   console.log('[%s]\npnpm run build:test-artifacts', new Date().toISOString());
-  var build_test = child_process.exec('pnpm run build:test-artifacts', {
+  const build_test = exec('pnpm run build:test-artifacts', {
     env: process.env
   });
   build_test.stdout.pipe(process.stdout, { end: false });
@@ -96,7 +96,7 @@ function run_make_test() {
     if (code) {
       console.error('Exit Code ' + code);
     } else {
-      var serverAddress =
+      const serverAddress =
         HOST === '0.0.0.0' ? 'localhost:' + PORT : HOST + ':' + PORT;
       console.log('\nMathQuill is now running on ' + serverAddress);
       console.log('Open http://' + serverAddress + '/test/demo.html\n');
