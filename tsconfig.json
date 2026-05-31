@@ -9,12 +9,12 @@
     "noUnusedParameters": true,
     "strictPropertyInitialization": false,
     "strict": true,
-    "target": "ES5",
-    "lib": ["ES5", "ScriptHost", "DOM", "ES2015.Collection"],
+    "target": "esnext",
+    "useDefineForClassFields": false,
+    "lib": ["ESNext", "ScriptHost", "DOM", "ES2015.Collection"],
     "rootDir": ".",
-    "baseUrl": ".",
     "paths": {
-      "tslib": ["node_modules/tslib/tslib"]
+      "tslib": ["./node_modules/tslib/tslib"]
     },
     "importHelpers": true,
     "noEmit": true,
