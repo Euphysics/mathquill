@@ -1,3 +1,24 @@
+import { MQSymbol, MathCommand, MathBlock, BinaryOperator, bindBinaryOperator, VanillaSymbol, bindVanillaSymbol, DOMView } from '../math';
+export { VanillaSymbol } from '../math';
+import { LatexCmds, CharCmds, Fragment } from '../../tree';
+import { baseOptionProcessors } from '../../optionProcessors';
+import { L, R, max, min, pray } from '../../utils';
+import type { Direction } from '../../utils';
+import { h } from '../../dom';
+import { domFrag } from '../../domFragment';
+import { U_NO_BREAK_SPACE } from '../../unicode';
+import { isMQNodeClass } from '../../services/mqnode';
+import { Options } from '../../options';
+import type { AutoDict } from '../../options';
+import { Parser } from '../../services/parser.util';
+import { latexParserRef } from '../../latexParserRef';
+import { letterDigitRef } from './letterDigitRef';
+// AnsBuilder, PercentOfBuilder, SupSub, Bracket, SummationNotation, TempSingleCharNode are imported lazily (only used in method bodies) — safe circular dep
+import { AnsBuilder, PercentOfBuilder, SupSub, Bracket, SummationNotation } from './commands';
+import { TempSingleCharNode } from '../../services/latex';
+import type { MQNode } from '../../services/mqnode';
+import type { Cursor } from '../../cursor';
+
 /*********************************
  * Symbols for Basic Mathematics
  ********************************/
@@ -5,7 +26,7 @@
 const SPACE = '\\ ';
 const DOT = '.';
 
-class DigitGroupingChar extends MQSymbol {
+export class DigitGroupingChar extends MQSymbol {
   finalizeTree(opts: CursorOptions, dir: Direction) {
     this.sharedSiblingMethod(opts, dir);
   }
@@ -216,7 +237,7 @@ class DigitGroupingChar extends MQSymbol {
   }
 }
 
-class Digit extends DigitGroupingChar {
+export class Digit extends DigitGroupingChar {
   constructor(ch: string, mathspeak?: string) {
     super(
       ch,
@@ -272,7 +293,7 @@ class Digit extends DigitGroupingChar {
   }
 }
 
-class Variable extends MQSymbol {
+export class Variable extends MQSymbol {
   isItalic?: boolean;
 
   constructor(chOrCtrlSeq: string, html?: ChildNode) {
@@ -408,7 +429,7 @@ function letterSequenceEndingAtNode(node: NodeRef, maxLength: number) {
   return str;
 }
 
-class Letter extends Variable {
+export class Letter extends Variable {
   letter: string;
   /**
    * If this is the last letter of an operatorname (`\operatorname{arcsinh}`)
@@ -655,7 +676,11 @@ class Letter extends Variable {
     return false;
   }
 }
-var BuiltInOpNames: AutoDict = {}; // the set of operator names like \sin, \cos, etc that
+// Set letterDigitRef so commands/math.ts can use Letter/Digit without circular TDZ
+letterDigitRef.Letter = Letter;
+letterDigitRef.Digit = Digit;
+
+export var BuiltInOpNames: AutoDict = {}; // the set of operator names like \sin, \cos, etc that
 // are built-into LaTeX, see Section 3.17 of the Short Math Guide: http://tinyurl.com/jm9okjc
 // MathQuill auto-unitalicizes some operator names not in that set, like 'hcf'
 // and 'arsinh', which must be exported as \operatorname{hcf} and
@@ -665,9 +690,9 @@ var BuiltInOpNames: AutoDict = {}; // the set of operator names like \sin, \cos,
 // the set of operator names that MathQuill auto-unitalicizes by default; overridable
 Options.prototype.autoOperatorNames = defaultAutoOpNames();
 
-var TwoWordOpNames = { limsup: 1, liminf: 1, projlim: 1, injlim: 1 };
+export var TwoWordOpNames = { limsup: 1, liminf: 1, projlim: 1, injlim: 1 };
 
-function defaultAutoOpNames() {
+export function defaultAutoOpNames() {
   const AutoOpNames: AutoDict = {
     _maxLength: 9
   };
@@ -779,7 +804,7 @@ function splitWordsIntoDict(cmds: unknown) {
   return dict;
 }
 
-class OperatorName extends MQSymbol {
+export class OperatorName extends MQSymbol {
   ctrlSeq: string;
   constructor(fn?: string) {
     super(fn || '');
@@ -811,7 +836,7 @@ LatexCmds.operatorname = class extends MathCommand {
     return 1 as const;
   }
   parser() {
-    return latexMathParser.block.map(function (b) {
+    return latexParserRef.parser.block.map(function (b) {
       // Check for the special case of \operatorname{ans}, which has
       // a special html representation
       var isAllLetters = true;
@@ -892,7 +917,7 @@ LatexCmds['□'] = LatexCmds.square = bindVanillaSymbol(
 LatexCmds.mid = bindVanillaSymbol('\\mid ', '\u2223', 'mid');
 
 // support for custom css
-class SymbolWithCustomClass extends MQSymbol {
+export class SymbolWithCustomClass extends MQSymbol {
   constructor(ch: string, customClass: string) {
     super(ch, h('span', { class: customClass }, [h.text(ch)]));
   }
@@ -900,7 +925,7 @@ class SymbolWithCustomClass extends MQSymbol {
 LatexCmds[','] = () => new SymbolWithCustomClass(',', 'mq-comma');
 
 // does not use Symbola font
-class NonSymbolaSymbol extends MQSymbol {
+export class NonSymbolaSymbol extends MQSymbol {
   constructor(ch: string, html?: ChildNode, _unusedMathspeak?: string) {
     super(ch, h('span', { class: 'mq-nonSymbola' }, [html || h.text(ch)]));
   }
@@ -1089,7 +1114,7 @@ LatexCmds['∀'] = LatexCmds.forall = bindUppercaseGreek('forall');
 
 // symbols that aren't a single MathCommand, but are instead a whole
 // Fragment. Creates the Fragment from a LaTeX string
-class LatexFragment extends MathCommand {
+export class LatexFragment extends MathCommand {
   latexStr: string;
 
   constructor(latex: string) {
@@ -1098,7 +1123,7 @@ class LatexFragment extends MathCommand {
   }
 
   createLeftOf(cursor: Cursor) {
-    var block = latexMathParser.parse(this.latexStr);
+    var block = latexParserRef.parser.parse(this.latexStr);
     block
       .children()
       .adopt(cursor.parent, cursor[L] as MQNode, cursor[R] as MQNode);
@@ -1117,10 +1142,10 @@ class LatexFragment extends MathCommand {
     });
   }
   mathspeak() {
-    return latexMathParser.parse(this.latexStr).mathspeak();
+    return latexParserRef.parser.parse(this.latexStr).mathspeak();
   }
   parser() {
-    var frag = latexMathParser.parse(this.latexStr).children();
+    var frag = latexParserRef.parser.parse(this.latexStr).children();
     return Parser.succeed(frag);
   }
 }
@@ -1194,7 +1219,7 @@ LatexCmds['√'] = () => new LatexFragment('\\sqrt{}');
  *   siometimes be interpreted as unary, or
  * - node ends an infix word like "for" specified in `infixOperatorNames`
  */
-function nodeEndsBinaryOperator(node: NodeRef): boolean {
+export function nodeEndsBinaryOperator(node: NodeRef): boolean {
   return (
     node instanceof BinaryOperator ||
     (node instanceof Letter && node.endsCategory == 'infix')
@@ -1427,7 +1452,7 @@ LatexCmds['≠'] =
   LatexCmds.neq =
     bindBinaryOperator('\\ne ', '&ne;', 'not equal');
 
-class Equality extends BinaryOperator {
+export class Equality extends BinaryOperator {
   constructor() {
     super('=', h.text('='), '=', 'equals');
   }

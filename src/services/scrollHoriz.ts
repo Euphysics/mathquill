@@ -1,9 +1,14 @@
+import { Controller_mouse } from './mouse';
+import { getBoundingClientRect } from '../browser';
+import { animate } from '../animate';
+import { L } from '../utils';
+
 /***********************************************
  * Horizontal panning for editable fields that
  * overflow their width
  **********************************************/
 
-class Controller_scrollHoriz extends Controller_mouse {
+export class Controller_scrollHoriz extends Controller_mouse {
   private cancelScrollHoriz: (() => void) | undefined;
   setOverflowClasses() {
     var root = this.root.domFrag().oneElement();

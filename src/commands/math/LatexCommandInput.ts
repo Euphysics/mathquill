@@ -1,3 +1,13 @@
+import { MathCommand, DOMView, VanillaSymbol } from '../math';
+import { CharCmds, LatexCmds, Fragment } from '../../tree';
+import { L, R } from '../../utils';
+import { h } from '../../dom';
+import { isMQNodeClass } from '../../services/mqnode';
+import { TempSingleCharNode } from '../../services/latex';
+import { TextBlock } from '../text';
+import type { MQNode } from '../../services/mqnode';
+import type { Cursor } from '../../cursor';
+
 /****************************************
  * Input box to type backslash commands
  ***************************************/

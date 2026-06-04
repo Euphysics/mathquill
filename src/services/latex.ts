@@ -1,4 +1,17 @@
-class TempSingleCharNode extends MQNode {
+import { MQNode } from './mqnode';
+import { Controller_keystroke } from './keystroke';
+import { Parser } from './parser.util';
+import { MathBlock } from '../commands/math';
+import { LatexCmds, CharCmds, Fragment, NodeBase } from '../tree';
+import { Letter, Digit, VanillaSymbol, LatexFragment } from '../commands/math/basicSymbols';
+import { baseOptionProcessors } from '../optionProcessors';
+import { findControllerRoot } from '../controller';
+import { L, R } from '../utils';
+import { domFrag, DOMFragment } from '../domFragment';
+import { latexParserRef } from '../latexParserRef';
+import type { Cursor } from '../cursor';
+
+export class TempSingleCharNode extends MQNode {
   constructor(_char: string) {
     super();
   }
@@ -11,7 +24,7 @@ type ExportedLatexSelection = {
 };
 
 // Parser MathBlock
-var latexMathParser = (function () {
+export var latexMathParser = (function () {
   function commandToBlock(cmd: MQNode | Fragment): MathBlock {
     // can also take in a Fragment
     var block = new MathBlock();
@@ -104,11 +117,14 @@ var latexMathParser = (function () {
   return latexMath;
 })();
 
+// Register the parser reference so math.ts can access it lazily without a circular dep
+latexParserRef.parser = latexMathParser;
+
 baseOptionProcessors.maxDepth = function (depth: number | undefined) {
   return typeof depth === 'number' ? depth : undefined;
 };
 
-class Controller_latex extends Controller_keystroke {
+export class Controller_latex extends Controller_keystroke {
   cleanLatex(latex: string) {
     //prune unnecessary spaces
     return latex.replace(/(\\[a-z]+) (?![a-z])/gi, '$1');

@@ -12,49 +12,49 @@ const __dirname = path.dirname(__filename);
 const ROOT = path.resolve(__dirname, '..');
 const SRC_DIR = path.join(ROOT, 'src');
 const BUILD_DIR = path.join(ROOT, 'build');
-const INTRO = path.join(SRC_DIR, 'intro.js');
-const OUTRO = path.join(SRC_DIR, 'outro.js');
+// const INTRO = path.join(SRC_DIR, 'intro.js');
+// const OUTRO = path.join(SRC_DIR, 'outro.js');
 const CSS_MAIN = path.join(SRC_DIR, 'css', 'main.less');
 const UNIT_DIR = path.join(ROOT, 'test', 'unit');
 
-const BASE_SOURCES = [
-  'utils.ts',
-  'dom.ts',
-  'unicode.ts',
-  'browser.ts',
-  'animate.ts',
-  'services/aria.ts',
-  'domFragment.ts',
-  'tree.ts',
-  'cursor.ts',
-  'controller.ts',
-  'publicapi.ts',
-  'services/parser.util.ts',
-  'services/saneKeyboardEvents.util.ts',
-  'services/exportText.ts',
-  'services/focusBlur.ts',
-  'services/keystroke.ts',
-  'services/latex.ts',
-  'services/mouse.ts',
-  'services/scrollHoriz.ts',
-  'services/textarea.ts'
-].map((file) => path.join(SRC_DIR, file));
+// const BASE_SOURCES = [
+//   'utils.ts',
+//   'dom.ts',
+//   'unicode.ts',
+//   'browser.ts',
+//   'animate.ts',
+//   'services/aria.ts',
+//   'domFragment.ts',
+//   'tree.ts',
+//   'cursor.ts',
+//   'controller.ts',
+//   'publicapi.ts',
+//   'services/parser.util.ts',
+//   'services/saneKeyboardEvents.util.ts',
+//   'services/exportText.ts',
+//   'services/focusBlur.ts',
+//   'services/keystroke.ts',
+//   'services/latex.ts',
+//   'services/mouse.ts',
+//   'services/scrollHoriz.ts',
+//   'services/textarea.ts'
+// ].map((file) => path.join(SRC_DIR, file));
 
-const SOURCE_SETS = {
-  full: BASE_SOURCES.concat([
-    path.join(SRC_DIR, 'commands/math.ts'),
-    path.join(SRC_DIR, 'commands/text.ts'),
-    path.join(SRC_DIR, 'commands/math/advancedSymbols.ts'),
-    path.join(SRC_DIR, 'commands/math/basicSymbols.ts'),
-    path.join(SRC_DIR, 'commands/math/commands.ts'),
-    path.join(SRC_DIR, 'commands/math/LatexCommandInput.ts')
-  ]),
-  basic: BASE_SOURCES.concat([
-    path.join(SRC_DIR, 'commands/math.ts'),
-    path.join(SRC_DIR, 'commands/math/basicSymbols.ts'),
-    path.join(SRC_DIR, 'commands/math/commands.ts')
-  ])
-};
+// const SOURCE_SETS = {
+//   full: BASE_SOURCES.concat([
+//     path.join(SRC_DIR, 'commands/math.ts'),
+//     path.join(SRC_DIR, 'commands/text.ts'),
+//     path.join(SRC_DIR, 'commands/math/advancedSymbols.ts'),
+//     path.join(SRC_DIR, 'commands/math/basicSymbols.ts'),
+//     path.join(SRC_DIR, 'commands/math/commands.ts'),
+//     path.join(SRC_DIR, 'commands/math/LatexCommandInput.ts')
+//   ]),
+//   basic: BASE_SOURCES.concat([
+//     path.join(SRC_DIR, 'commands/math.ts'),
+//     path.join(SRC_DIR, 'commands/math/basicSymbols.ts'),
+//     path.join(SRC_DIR, 'commands/math/commands.ts')
+//   ])
+// };
 
 const TEST_SUPPORT = [
   path.join(ROOT, 'test', 'support', 'assert.ts'),
@@ -68,8 +68,8 @@ const MINIFY_FILTERS = {
 };
 
 const REQUIRED_FOR_MINIFY = {
-  main: ['mathquill.js', 'mathquill.css'],
-  basic: ['mathquill-basic.js']
+  main: ['mathquill.iife.js', 'mathquill.css'],
+  basic: ['mathquill-basic.iife.js']
 };
 
 const COMMAND_ALIASES = {
@@ -213,33 +213,38 @@ function getUnitTests() {
     .map((file) => path.join(UNIT_DIR, file));
 }
 
-function buildJs(options, mode = 'full') {
-  const outputName = mode === 'basic' ? 'mathquill-basic.js' : 'mathquill.js';
-
-  const output = transpileBundle([INTRO].concat(SOURCE_SETS[mode], [OUTRO]), {
-    version: options.version,
-    classPrefix: options.classPrefix,
-    escapeUnicode: true
-  });
-  return writeBuildFile(outputName, output);
-}
-
-function buildTestJs(options) {
-  const inputFiles = [INTRO].concat(
-    SOURCE_SETS.full,
-    TEST_SUPPORT,
-    getUnitTests(),
-    [OUTRO]
+function buildJs(_options, mode = 'full') {
+  const filterName = mode === 'basic' ? 'js-basic' : 'js-main';
+  const result = spawnSync(
+    'pnpm',
+    ['exec', 'tsdown', '--config', 'tsdown.config.ts', '--filter', filterName],
+    { cwd: ROOT, encoding: 'utf8' }
   );
-
-  const output = transpileBundle(inputFiles, {
-    version: options.version,
-    classPrefix: '',
-    escapeUnicode: false
-  });
-
-  writeBuildFile('mathquill.test.js', output);
+  if (result.error) throw result.error;
+  if (result.status !== 0) {
+    throw new Error(
+      result.stderr || `tsdown failed with exit code ${result.status}`
+    );
+  }
+  if (result.stdout) process.stdout.write(result.stdout);
 }
+
+// function buildTestJs(options) {
+//   const inputFiles = [INTRO].concat(
+//     SOURCE_SETS.full,
+//     TEST_SUPPORT,
+//     getUnitTests(),
+//     [OUTRO]
+//   );
+
+//   const output = transpileBundle(inputFiles, {
+//     version: options.version,
+//     classPrefix: '',
+//     escapeUnicode: false
+//   });
+
+//   writeBuildFile('mathquill.test.js', output);
+// }
 
 async function run(commandName) {
   const version = readVersion();
@@ -268,7 +273,7 @@ async function run(commandName) {
     'basic-js': async () => buildJs(options, 'basic'),
     'minify-basic': async () => minifyArtifacts('basic'),
     'basic-css': async () => buildCss({ ...options, basic: true }),
-    'test-js': async () => buildTestJs(options),
+    // 'test-js': async () => buildTestJs(options),
     clean: async () => {
       fs.rmSync(BUILD_DIR, { recursive: true, force: true });
       console.log('cleaned build directory');

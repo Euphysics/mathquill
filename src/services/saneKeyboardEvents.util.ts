@@ -1,5 +1,8 @@
+import { noop } from '../utils';
+import type { Controller } from './textarea';
+
 /** Poller that fires once every tick. */
-class EveryTick<Args extends unknown[] = []> {
+export class EveryTick<Args extends unknown[] = []> {
   private timeoutId: number;
   private fn: (...args: Args | []) => void = noop;
   constructor() {}
@@ -41,7 +44,7 @@ class EveryTick<Args extends unknown[] = []> {
  * cross-browser issues that arise must be dealt
  * with here, and if necessary, the API updated.
  ************************************************/
-var saneKeyboardEvents = (function () {
+export var saneKeyboardEvents = (function () {
   // The following [key values][1] map was compiled from the
   // [DOM3 Events appendix section on key codes][2] and
   // [a widely cited report on cross-browser tests of key codes][3],

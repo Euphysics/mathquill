@@ -1,4 +1,8 @@
-type HTMLTagName =
+import { pray } from './utils';
+import { NodeBase } from './tree';
+import type { MathBlock } from './commands/math';
+
+export type HTMLTagName =
   | 'span'
   | 'textarea'
   | 'i'
@@ -7,15 +11,15 @@ type HTMLTagName =
   | 'sup'
   | 'var'
   | 'br';
-type SVGTagName = 'svg' | 'path';
+export type SVGTagName = 'svg' | 'path';
 
-interface CreateElementAttributes {
+export interface CreateElementAttributes {
   class?: string;
   style?: string;
   [name: string]: string | boolean | number | undefined;
 }
 
-function parseHTML(s: string) {
+export function parseHTML(s: string) {
   // https://youmightnotneedjquery.com/#parse_html
   const tmp = document.implementation.createHTMLDocument('');
   tmp.body.innerHTML = s;
@@ -57,7 +61,7 @@ interface HtmlBuilder {
   entityText(s: string): Text;
 }
 
-const h: HtmlBuilder = function h(
+export const h: HtmlBuilder = function h(
   type: HTMLTagName | SVGTagName,
   attributes?: CreateElementAttributes,
   children?: (ChildNode | DocumentFragment)[]
@@ -123,7 +127,7 @@ h.entityText = (s: string) => {
   return val.childNodes[0] as Text;
 };
 
-function closest(el: unknown | null, s: string) {
+export function closest(el: unknown | null, s: string) {
   if (typeof (el as any)?.closest === 'function') {
     return (el as HTMLElement).closest(s);
   }

@@ -1,3 +1,20 @@
+import { MathCommand, MQSymbol, MathBlock, DOMView, RootMathBlock } from '../math';
+import { LatexCmds, CharCmds, Fragment, NodeBase, Point } from '../../tree';
+import { L, R, pray, noop } from '../../utils';
+import type { Direction, Ends } from '../../utils';
+import { h, parseHTML } from '../../dom';
+import type { HTMLTagName } from '../../dom';
+import { domFrag, DOMFragment } from '../../domFragment';
+import { U_NARY_SUMMATION, U_NARY_PRODUCT, U_NARY_COPRODUCT, U_INTEGRAL, U_DOT_ABOVE, U_ZERO_WIDTH_SPACE } from '../../unicode';
+import { Parser } from '../../services/parser.util';
+import { latexParserRef } from '../../latexParserRef';
+import { Options } from '../../options';
+import { Controller } from '../../services/textarea';
+import { RootBlockMixin } from '../../publicapi';
+import { Letter, DigitGroupingChar, nodeEndsBinaryOperator, Equality, Digit } from './basicSymbols';
+import { MQNode } from '../../services/mqnode';
+import type { Cursor, Anticursor } from '../../cursor';
+
 /***************************
  * Commands and Operators.
  **************************/
@@ -93,7 +110,7 @@ var SVG_SYMBOLS = {
 
 const ArrowText = '\u27A4';
 
-class Style extends MathCommand {
+export class Style extends MathCommand {
   shouldNotSpeakDelimiters: boolean | undefined;
 
   constructor(
@@ -350,7 +367,7 @@ Options.prototype.charsThatBreakOutOfSupSub = '';
  * from being a superscript to a subscript without deleting the node by adding a subscript
  * then deleting the superscript.
  */
-class SupSub extends MathCommand {
+export class SupSub extends MathCommand {
   sub?: MathBlock;
   sup?: MathBlock;
   /**
@@ -410,6 +427,11 @@ class SupSub extends MathCommand {
       ends[L] instanceof MathBlock && ends[R] instanceof MathBlock
     );
     this.ends = ends;
+  }
+
+  /** Override NodeBase.isSupSub() so shouldIgnoreSubstitutionInSimpleSubscript can use duck-typing */
+  isSupSub() {
+    return true;
   }
 
   getEnd(dir: Direction): MathBlock {
@@ -746,7 +768,7 @@ LatexCmds.superscript =
   LatexCmds['^'] =
     () => new SupSub('sup');
 
-class SummationNotation extends MathCommand {
+export class SummationNotation extends MathCommand {
   constructor(ch: string, symbol: string, ariaLabel?: string) {
     super();
 
@@ -809,7 +831,7 @@ class SummationNotation extends MathCommand {
     var string = Parser.string;
     var optWhitespace = Parser.optWhitespace;
     var succeed = Parser.succeed;
-    var block = latexMathParser.block;
+    var block = latexParserRef.parser.block;
 
     var self = this;
     var blocks = (self.blocks = [new MathBlock(), new MathBlock()]);
@@ -1014,7 +1036,7 @@ var Fraction =
       }
     });
 
-var LiveFraction =
+export var LiveFraction =
   (LatexCmds.over =
   CharCmds['/'] =
     class extends Fraction {
@@ -1074,7 +1096,7 @@ var LiveFraction =
       }
     });
 
-const AnsBuilder = () =>
+export const AnsBuilder = () =>
   new MQSymbol(
     '\\operatorname{ans}',
     h('span', { class: 'mq-ans' }, [h.text('ans')]),
@@ -1082,7 +1104,7 @@ const AnsBuilder = () =>
   );
 LatexCmds.ans = AnsBuilder;
 
-const PercentOfBuilder = () =>
+export const PercentOfBuilder = () =>
   new MQSymbol(
     '\\%\\operatorname{of}',
     h('span', { class: 'mq-nonSymbola mq-operator-name' }, [h.text('% of ')]),
@@ -1149,7 +1171,7 @@ class Token extends MQSymbol {
 
   parser() {
     var self = this;
-    return latexMathParser.block.map(function (block) {
+    return latexParserRef.parser.block.map(function (block) {
       var digit = block.getEnd(L);
       if (digit) {
         self.tokenId += (digit as Digit).ctrlSeq;
@@ -1176,7 +1198,7 @@ class TokenName extends Token {
 }
 LatexCmds.tokenName = TokenName;
 
-class SquareRoot extends MathCommand {
+export class SquareRoot extends MathCommand {
   ctrlSeq = '\\sqrt';
   domView = new DOMView(1, (blocks) =>
     h('span', { class: 'mq-non-leaf mq-sqrt-container' }, [
@@ -1190,9 +1212,9 @@ class SquareRoot extends MathCommand {
   mathspeakTemplate = ['StartRoot,', ', EndRoot'];
   ariaLabel = 'root';
   parser() {
-    return latexMathParser.optBlock
+    return latexParserRef.parser.optBlock
       .then(function (optBlock) {
-        return latexMathParser.block.map(function (block) {
+        return latexParserRef.parser.block.map(function (block) {
           var nthroot = new NthRoot();
           nthroot.blocks = [optBlock, block];
           optBlock.adopt(nthroot, 0, 0);
@@ -1227,7 +1249,7 @@ LatexCmds.hat = class Hat extends MathCommand {
   textTemplate = ['hat(', ')'];
 };
 
-class NthRoot extends SquareRoot {
+export class NthRoot extends SquareRoot {
   domView = new DOMView(2, (blocks) =>
     h('span', { class: 'mq-nthroot-container mq-non-leaf' }, [
       h.block('sup', { class: 'mq-nthroot mq-non-leaf' }, blocks[0]),
@@ -1300,7 +1322,7 @@ LatexCmds.vec = () =>
 LatexCmds.tilde = () =>
   new DiacriticAbove('\\tilde', h.text('~'), ['tilde(', ')']);
 
-class DelimsNode extends MathCommand {
+export class DelimsNode extends MathCommand {
   delimFrags: Ends<DOMFragment>;
 
   setDOM(el: Element | undefined) {
@@ -1319,7 +1341,7 @@ class DelimsNode extends MathCommand {
 // Round/Square/Curly/Angle Brackets (aka Parens/Brackets/Braces)
 //   first typed as one-sided bracket with matching "ghost" bracket at
 //   far end of current block, until you type an opposing one
-class Bracket extends DelimsNode {
+export class Bracket extends DelimsNode {
   side: BracketSide;
   sides: {
     [L]: { ch: string; ctrlSeq: string };
@@ -1722,7 +1744,7 @@ LatexCmds.left = class extends MathCommand {
           open = '&#8741;';
           ctrlSeq = ctrlSeq + ' ';
         }
-        return latexMathParser.then(function (block) {
+        return latexParserRef.parser.then(function (block) {
           return string('\\right')
             .skip(optWhitespace)
             .then(
@@ -1756,7 +1778,7 @@ LatexCmds.right = class extends MathCommand {
 
 var leftBinomialSymbol = SVG_SYMBOLS['('];
 var rightBinomialSymbol = SVG_SYMBOLS[')'];
-class Binomial extends DelimsNode {
+export class Binomial extends DelimsNode {
   ctrlSeq = '\\binom';
   domView = new DOMView(2, (blocks) =>
     h('span', { class: 'mq-non-leaf mq-bracket-container' }, [
@@ -1923,7 +1945,7 @@ LatexCmds.editable = LatexCmds.MathQuillMathField = MathFieldNode; // backcompat
 // Create by calling public API method .dropEmbedded(),
 // or by calling the global public API method .registerEmbed()
 // and rendering LaTeX like \embed{registeredName} (see test).
-class EmbedNode extends MQSymbol {
+export class EmbedNode extends MQSymbol {
   setOptions(options: EmbedOptions) {
     function noop() {
       return '';

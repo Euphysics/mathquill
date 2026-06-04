@@ -23,7 +23,7 @@
  * to keep its implementation simple because it isn't used very widely
  * in the project.
  */
-const animate = (function () {
+export const animate = (function () {
   // IIFE exists just to hang on to configured rafShim and cancelShim
   // functions
   let rafShim: (cb: () => void) => number, cancelShim: (token: number) => void;

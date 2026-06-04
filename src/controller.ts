@@ -1,4 +1,10 @@
-type TextareaKeyboardEventListeners = Partial<{
+import { pray, L, R } from './utils';
+import type { Direction } from './utils';
+import { Aria } from './services/aria';
+import { Cursor } from './cursor';
+import { NodeBase } from './tree';
+
+export type TextareaKeyboardEventListeners = Partial<{
   [K in keyof HTMLElementEventMap]: (event: HTMLElementEventMap[K]) => any;
 }>;
 
@@ -6,14 +12,14 @@ type TextareaKeyboardEventListeners = Partial<{
  * Controller for a MathQuill instance
  ********************************************/
 
-type HandlerWithDirectionFunction = NonNullable<
+export type HandlerWithDirectionFunction = NonNullable<
   HandlerOptions[HandlersWithDirection]
 >;
-type HandlerWithoutDirectionFunction = NonNullable<
+export type HandlerWithoutDirectionFunction = NonNullable<
   HandlerOptions[HandlersWithoutDirection]
 >;
 
-class ControllerBase {
+export class ControllerBase {
   id: number;
   data: ControllerData;
   readonly root: ControllerRoot;
@@ -202,4 +208,13 @@ class ControllerBase {
   scrollHoriz() {}
   selectionChanged() {}
   setOverflowClasses() {}
+}
+
+export function findControllerRoot(node: NodeBase) {
+  let cur: NodeBase | undefined = node;
+  while (cur) {
+    if (ControllerBase.isControllerRoot(cur)) return cur;
+    cur = cur.parent;
+  }
+  return undefined;
 }

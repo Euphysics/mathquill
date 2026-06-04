@@ -1,3 +1,11 @@
+import { L, R, pray, prayDirection } from './utils';
+import type { Direction, Ends } from './utils';
+import { domFrag, DOMFragment } from './domFragment';
+import type { Cursor } from './cursor';
+import type { MQNode } from './services/mqnode';
+import type { MathCommand } from './commands/math';
+import type { TextBlock } from './commands/text';
+
 /*************************************************
  * Base classes of edit tree-related objects
  *
@@ -7,7 +15,7 @@
  ************************************************/
 
 /** A cursor-like location in an mq node tree. */
-class Point {
+export class Point {
   /** The node to the left of this point (or 0 for the position before a first child) */
   [L]: NodeRef;
   /** The node to the right of this point (or 0 for the position after a last child) */
@@ -30,7 +38,7 @@ class Point {
   }
 }
 
-function eachNode(
+export function eachNode(
   ends: Ends<NodeRef>,
   yield_: (el: MQNode) => boolean | undefined | void
 ) {
@@ -51,7 +59,7 @@ function eachNode(
   }
 }
 
-function foldNodes<T>(
+export function foldNodes<T>(
   ends: Ends<NodeRef>,
   fold: T,
   yield_: (fold: T, el: MQNode) => T
@@ -74,17 +82,12 @@ function foldNodes<T>(
   return fold;
 }
 
-type ElementTrackingNode = {
+export type ElementTrackingNode = {
   mqBlockNode?: NodeBase;
   mqCmdNode?: NodeBase;
 };
 
-type Ends<T> = {
-  readonly [L]: T;
-  readonly [R]: T;
-};
-
-class NodeBase {
+export class NodeBase {
   static idCounter = 0;
   static uniqueNodeId() {
     return (NodeBase.idCounter += 1);
@@ -196,10 +199,6 @@ class NodeBase {
     this.createDir(L, cursor);
   }
 
-  selectChildren(leftEnd: MQNode, rightEnd: MQNode) {
-    return new MQSelection(leftEnd, rightEnd);
-  }
-
   bubble(yield_: (ancestor: MQNode) => boolean | undefined) {
     var self = this.getSelfNode();
 
@@ -242,6 +241,11 @@ class NodeBase {
   }
 
   isTextBlock() {
+    return false;
+  }
+
+  /** Overridden by SupSub to return true */
+  isSupSub() {
     return false;
   }
 
@@ -295,13 +299,13 @@ class NodeBase {
     const opt = options.disableAutoSubstitutionInSubscripts;
     if (!opt) return false;
     if (!this.parent) return false;
-    if (!(this.parent.parent instanceof SupSub)) return false;
+    if (!this.parent.parent?.isSupSub()) return false;
 
     // Allow substitution in e.g. log subscripts
-    const before = this.parent.parent[L];
+    const before = this.parent.parent[L] as any;
     if (
       typeof opt === 'object' &&
-      before instanceof Letter &&
+      before &&
       before.endsWord &&
       opt.except[before.endsWord]
     ) {
@@ -486,7 +490,7 @@ function prayWellFormed(parent: MQNode, leftward: NodeRef, rightward: NodeRef) {
  * DocumentFragment, whose contents must be detached from the visible tree
  * and have their 'parent' pointers set to the DocumentFragment).
  */
-class Fragment {
+export class Fragment {
   /**
    * The (doubly-linked) list of nodes contained in this fragment.
    *
@@ -510,8 +514,8 @@ class Fragment {
       return;
     }
 
-    pray('withDir is passed to Fragment', withDir instanceof MQNode);
-    pray('oppDir is passed to Fragment', oppDir instanceof MQNode);
+    pray('withDir is passed to Fragment', withDir instanceof NodeBase);
+    pray('oppDir is passed to Fragment', oppDir instanceof NodeBase);
     pray(
       'withDir and oppDir have the same parent',
       withDir.parent === oppDir.parent
@@ -697,9 +701,5 @@ class Fragment {
  *
  * (Commands are all subclasses of Node.)
  */
-var LatexCmds: LatexCmds = {};
-var CharCmds: CharCmds = {};
-
-function isMQNodeClass(cmd: any): cmd is typeof MQNode {
-  return cmd && cmd.prototype instanceof MQNode;
-}
+export var LatexCmds: LatexCmds = {};
+export var CharCmds: CharCmds = {};

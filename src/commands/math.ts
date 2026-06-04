@@ -1,3 +1,18 @@
+import { MQNode } from '../services/mqnode';
+import { h } from '../dom';
+import { domFrag } from '../domFragment';
+import { L, R, pray } from '../utils';
+import type { Direction, Ends } from '../utils';
+import { getBoundingClientRect } from '../browser';
+import { Parser } from '../services/parser.util';
+import { latexParserRef } from '../latexParserRef';
+import { NodeBase, LatexCmds, CharCmds, Fragment } from '../tree';
+import { Options } from '../options';
+import type { Cursor, Anticursor } from '../cursor';
+import type { Controller } from '../services/textarea';
+// letterDigitRef breaks circular dep: basicSymbols.ts imports from math.ts (class extends)
+import { letterDigitRef } from './math/letterDigitRef';
+
 /*************************************************
  * Abstract classes of math blocks and commands.
  ************************************************/
@@ -7,7 +22,7 @@
  * Some math-tree-specific extensions to MQNode.
  * Both MathBlock's and MathCommand's descend from it.
  */
-class MathElement extends MQNode {
+export class MathElement extends MQNode {
   finalizeInsert(options: CursorOptions, cursor: Cursor) {
     var self = this;
     self.postOrder(function (node) {
@@ -77,7 +92,7 @@ class MathElement extends MQNode {
   }
 }
 
-class DOMView {
+export class DOMView {
   constructor(
     public readonly childCount: number,
     public readonly render: (blocks: MathBlock[]) => Element
@@ -88,7 +103,7 @@ class DOMView {
  * Commands and operators, like subscripts, exponents, or fractions.
  * Descendant commands are organized into blocks.
  */
-class MathCommand extends MathElement {
+export class MathCommand extends MathElement {
   replacedFragment: Fragment | undefined;
   protected domView: DOMView;
   protected ends: Ends<MQNode>;
@@ -129,7 +144,7 @@ class MathCommand extends MathElement {
   }
 
   parser(): Parser<MQNode | Fragment> {
-    var block = latexMathParser.block;
+    var block = latexParserRef.parser.block;
 
     return block.times(this.numBlocks()).map((blocks) => {
       this.blocks = blocks;
@@ -203,9 +218,6 @@ class MathCommand extends MathElement {
   selectTowards(dir: Direction, cursor: Cursor) {
     cursor[-dir as Direction] = this;
     cursor[dir] = this[dir];
-  }
-  selectChildren(): MQSelection {
-    return new MQSelection(this, this);
   }
   unselectInto(dir: Direction, cursor: Cursor) {
     const antiCursor = cursor.anticursor as Anticursor;
@@ -339,7 +351,7 @@ class MathCommand extends MathElement {
 /**
  * Lightweight command without blocks or children.
  */
-class MQSymbol extends MathCommand {
+export class MQSymbol extends MathCommand {
   constructor(
     ctrlSeq?: string,
     html?: HTMLElement,
@@ -419,12 +431,12 @@ class MQSymbol extends MathCommand {
     return true;
   }
 }
-class VanillaSymbol extends MQSymbol {
+export class VanillaSymbol extends MQSymbol {
   constructor(ch: string, html?: ChildNode, mathspeak?: string) {
     super(ch, h('span', {}, [html || h.text(ch)]), undefined, mathspeak);
   }
 }
-function bindVanillaSymbol(
+export function bindVanillaSymbol(
   ch: string,
   htmlEntity?: string,
   mathspeak?: string
@@ -437,7 +449,7 @@ function bindVanillaSymbol(
     );
 }
 
-class BinaryOperator extends MQSymbol {
+export class BinaryOperator extends MQSymbol {
   constructor(
     ctrlSeq?: string,
     html?: ChildNode,
@@ -469,7 +481,7 @@ class BinaryOperator extends MQSymbol {
     return true;
   }
 }
-function bindBinaryOperator(
+export function bindBinaryOperator(
   ctrlSeq?: string,
   htmlEntity?: string,
   text?: string,
@@ -489,7 +501,7 @@ function bindBinaryOperator(
  * symbols and operators that descend (in the Math DOM tree) from
  * ancestor operators.
  */
-class MathBlock extends MathElement {
+export class MathBlock extends MathElement {
   controller?: Controller;
 
   join(methodName: JoinMethod) {
@@ -633,8 +645,8 @@ class MathBlock extends MathElement {
   chToCmd(ch: string, options: CursorOptions) {
     var cons;
     // exclude f because it gets a dedicated command with more spacing
-    if (ch.match(/^[a-eg-zA-Z]$/)) return new Letter(ch);
-    else if (/^\d$/.test(ch)) return new Digit(ch);
+    if (ch.match(/^[a-eg-zA-Z]$/)) return new letterDigitRef.Letter!(ch);
+    else if (/^\d$/.test(ch)) return new letterDigitRef.Digit!(ch);
     else if (options && options.typingSlashWritesDivisionSymbol && ch === '/')
       return (LatexCmds as LatexCmdsSingleCharBuilder)['÷'](ch);
     else if (options && options.typingAsteriskWritesTimesSymbol && ch === '*')
@@ -669,7 +681,7 @@ class MathBlock extends MathElement {
     var all = Parser.all;
     var eof = Parser.eof;
 
-    var block = latexMathParser
+    var block = latexParserRef.parser
       .skip(eof)
       .or(all.result<false>(false))
       .parse(latex);
@@ -716,89 +728,5 @@ class MathBlock extends MathElement {
 }
 
 Options.prototype.mouseEvents = true;
-API.StaticMath = function (APIClasses: APIClasses) {
-  return class StaticMath extends APIClasses.AbstractMathQuill {
-    innerFields: InnerFields;
-    static RootBlock = MathBlock;
 
-    __mathquillify(opts: ConfigOptions, _interfaceVersion: number) {
-      this.config(opts as MathQuill.v3.Config);
-      // `mathquillify` calls `createTextarea`
-      super.mathquillify('mq-math-mode');
-      if (this.__options.enableDigitGrouping) {
-        this.__controller.root.domFrag().addClass('mq-show-grouping');
-      }
-      this.__controller.setupStaticField();
-      if (this.__options.mouseEvents) {
-        this.__controller.addMouseEventListener();
-      }
-      // The textarea is initialized (`createTextarea` called) by this point.
-      this.__controller.staticMathTextareaEvents();
-      return this;
-    }
-    constructor(el: Controller) {
-      super(el);
-      var innerFields = (this.innerFields = []);
-      this.__controller.root.postOrder(function (node: MQNode) {
-        node.registerInnerField(innerFields, APIClasses.InnerMathField);
-      });
-    }
-    latex(s: string): this;
-    latex(): string;
-    latex(_latex?: string): string | this {
-      var returned = super.latex.apply(this, arguments as unknown as any);
-      if (arguments.length > 0) {
-        var innerFields = (this.innerFields = []);
-        this.__controller.root.postOrder(function (node: MQNode) {
-          node.registerInnerField(innerFields, APIClasses.InnerMathField);
-        });
-        // Force an ARIA label update to remain in sync with the new LaTeX value.
-        this.__controller.updateMathspeak();
-      }
-      return returned;
-    }
-    setAriaLabel(ariaLabel: string) {
-      this.__controller.setAriaLabel(ariaLabel);
-      return this;
-    }
-    getAriaLabel() {
-      return this.__controller.getAriaLabel();
-    }
-  };
-};
-
-class RootMathBlock extends MathBlock {}
-RootBlockMixin(RootMathBlock.prototype); // adds methods to RootMathBlock
-
-API.MathField = function (APIClasses: APIClasses) {
-  return class MathField extends APIClasses.EditableField {
-    static RootBlock = RootMathBlock;
-
-    __mathquillify(opts: ConfigOptions, interfaceVersion: number) {
-      this.config(opts as MathQuill.v3.Config);
-      if (interfaceVersion > 1) this.__controller.root.reflow = noop;
-      super.mathquillify('mq-editable-field mq-math-mode');
-      // TODO: Why does this need to be deleted (contrary to the type definition)? Could we set it to `noop` instead?
-      delete (this.__controller.root as any).reflow;
-      return this;
-    }
-  };
-};
-
-API.InnerMathField = function (APIClasses: APIClasses) {
-  pray('MathField class is defined', APIClasses.MathField);
-  return class extends APIClasses.MathField {
-    makeStatic() {
-      this.__controller.editable = false;
-      this.__controller.root.blur();
-      this.__controller.unbindEditablesEvents();
-      domFrag(this.__controller.container).removeClass('mq-editable-field');
-    }
-    makeEditable() {
-      this.__controller.editable = true;
-      this.__controller.editablesTextareaEvents();
-      this.__controller.cursor.insAtRightEnd(this.__controller.root);
-      domFrag(this.__controller.container).addClass('mq-editable-field');
-    }
-  };
-};
+export class RootMathBlock extends MathBlock {}

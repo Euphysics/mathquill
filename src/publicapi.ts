@@ -1,8 +1,27 @@
+import { Options } from './options';
+import { baseOptionProcessors } from './optionProcessors';
+import { Controller } from './services/textarea';
+import { defaultSubstituteKeyboardEvents } from './services/textarea';
+import { ControllerBase } from './controller';
+import { NodeBase, LatexCmds } from './tree';
+import { domFrag } from './domFragment';
+import { h } from './dom';
+import { L, R, pray } from './utils';
+import type { Direction } from './utils';
+import { getScrollX, getScrollY } from './browser';
+import { EmbedNode } from './commands/math/commands';
+import type { MathBlock } from './commands/math';
+import type { ExportedLatexSelection } from './services/latex';
+
 /*********************************************************
  * The publicly exposed MathQuill API.
  ********************************************************/
 
-type KIND_OF_MQ = 'StaticMath' | 'MathField' | 'InnerMathField' | 'TextField';
+export type KIND_OF_MQ =
+  | 'StaticMath'
+  | 'MathField'
+  | 'InnerMathField'
+  | 'TextField';
 
 /** MathQuill instance fields/methods that are internal, not exposed in the public type defs. */
 interface InternalMathQuillInstance {
@@ -47,11 +66,11 @@ type APIClassBuilders = {
   TextField?: (APIClasses: APIClasses) => IEditableFieldClass;
 };
 
-var API: APIClassBuilders = {};
+export var API: APIClassBuilders = {};
 
-var EMBEDS: Record<string, (data: EmbedOptionsData) => EmbedOptions> = {};
+export var EMBEDS: Record<string, (data: EmbedOptionsData) => EmbedOptions> = {};
 
-const processedOptions = {
+export const processedOptions = {
   handlers: true,
   autoCommands: true,
   quietEmptyDelimiters: true,
@@ -71,85 +90,7 @@ type OptionProcessors = Partial<{
   [K in ProcessedOption]: (optionValue: ConfigOptions[K]) => CursorOptions[K];
 }>;
 
-const baseOptionProcessors: OptionProcessors = {};
-
-type AutoDict = {
-  _maxLength?: number;
-  [id: string]: any;
-};
-
-type SubstituteKeyboardEvents = (
-  el: $,
-  controller: Controller
-) => {
-  select: (text: string) => void;
-};
-
-class Options {
-  constructor(public version: 1 | 2 | 3) {}
-
-  ignoreNextMousedown: (_el: MouseEvent) => boolean;
-  askIfShouldIgnoreMousemove: (
-    evt: MouseEvent,
-    rootDOM: HTMLElement
-  ) => boolean;
-
-  substituteTextarea: () => HTMLElement;
-  /** Only used in interface versions 1 and 2. */
-  substituteKeyboardEvents: SubstituteKeyboardEvents;
-
-  restrictMismatchedBrackets?: boolean | 'none';
-  typingSlashCreatesNewFraction?: boolean;
-  charsThatBreakOutOfSupSub: string;
-  sumStartsWithNEquals?: boolean;
-  autoSubscriptNumerals?: boolean;
-  supSubsRequireOperand?: boolean;
-  spaceBehavesLikeTab?: boolean;
-  typingAsteriskWritesTimesSymbol?: boolean;
-  typingSlashWritesDivisionSymbol: boolean;
-  typingPercentWritesPercentOf?: boolean;
-  resetCursorOnBlur?: boolean | undefined;
-  leftRightIntoCmdGoes?: 'up' | 'down';
-  enableDigitGrouping?: boolean;
-  tripleDotsAreEllipsis?: boolean;
-  tabindex?: number;
-  mouseEvents?: boolean;
-  maxDepth?: number;
-  disableCopyPaste?: boolean;
-  statelessClipboard?: boolean;
-  logAriaAlerts?: boolean;
-  overridePaste?: (event?: ClipboardEvent) => boolean;
-  overrideCopy?: (event?: ClipboardEvent) => boolean;
-  overrideCut?: (event?: ClipboardEvent) => boolean;
-  onPaste?: () => void;
-  onCut?: () => void;
-  overrideTypedText?: (text: string) => void;
-  overrideKeystroke: (key: string, event: KeyboardEvent) => void;
-  autoOperatorNames: AutoDict;
-  infixOperatorNames: { [name in string]?: true };
-  prefixOperatorNames: { [name in string]?: true };
-  autoCommands: AutoDict;
-  autoParenthesizedFunctions: AutoDict;
-  quietEmptyDelimiters: { [id: string]: any };
-  disableAutoSubstitutionInSubscripts?:
-    | boolean
-    | { except: { [name in string]?: true } };
-  interpretTildeAsSim: boolean;
-  handlers?: {
-    fns: HandlerOptions;
-    APIClasses: APIClasses;
-  };
-  scrollAnimationDuration?: number;
-
-  jQuery: $ | undefined;
-  assertJquery() {
-    pray('Interface versions > 2 do not depend on JQuery', this.version <= 2);
-    pray('JQuery is set for interface v < 3', this.jQuery);
-    return this.jQuery;
-  }
-}
-
-class Progenote {}
+export class Progenote {}
 
 /**
  * Interface Versioning (#459, #495) to allow us to virtually guarantee
@@ -159,7 +100,7 @@ class Progenote {}
  * The methods are shimmed in outro.js so that MQ.MathField.prototype etc can
  * be accessed.
  */
-var insistOnInterVer = function () {
+export var insistOnInterVer = function () {
   if (window.console)
     console.warn(
       'You are using the MathQuill API without specifying an interface version, ' +
@@ -175,8 +116,8 @@ var insistOnInterVer = function () {
 };
 // globally exported API object
 
-let MQ1: any;
-function MathQuill(el: HTMLElement) {
+export let MQ1: any;
+export function MathQuill(el: HTMLElement) {
   insistOnInterVer();
   if (!MQ1) {
     MQ1 = getInterface(1);
@@ -214,7 +155,7 @@ var MIN = (getInterface.MIN = 1),
 function getInterface(v: 1): MathQuill.v1.API;
 function getInterface(v: 2): MathQuill.v1.API;
 function getInterface(v: 3): MathQuill.v3.API;
-function getInterface(v: number): MathQuill.v3.API | MathQuill.v1.API {
+export function getInterface(v: number): MathQuill.v3.API | MathQuill.v1.API {
   if (v !== 1 && v !== 2 && v !== 3)
     throw (
       'Only interface versions between ' +
@@ -628,7 +569,7 @@ MathQuill.noConflict = function () {
 var origMathQuill = window.MathQuill;
 window.MathQuill = MathQuill;
 
-function RootBlockMixin(_: RootBlockMixinInput) {
+export function RootBlockMixin(_: RootBlockMixinInput) {
   _.moveOutOf = function (dir: Direction) {
     pray('controller is defined', this.controller);
     this.controller.handle('moveOutOf', dir);

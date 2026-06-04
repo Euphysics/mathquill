@@ -1,3 +1,16 @@
+import { MQNode, isMQNodeClass } from '../services/mqnode';
+import { MathCommand, MathBlock, RootMathBlock, MathElement, VanillaSymbol, DOMView, BinaryOperator, MQSymbol } from './math';
+import { LatexCmds, CharCmds, Fragment, NodeBase } from '../tree';
+import { L, R, pray } from '../utils';
+import type { Direction } from '../utils';
+import { h } from '../dom';
+import { domFrag } from '../domFragment';
+import { U_NO_BREAK_SPACE } from '../unicode';
+import { Parser } from '../services/parser.util';
+import type { Cursor } from '../cursor';
+import type { LatexContext } from '../services/latex';
+import type { Controller } from '../services/textarea';
+
 /*************************************************
  * Abstract classes of text blocks
  ************************************************/
@@ -8,7 +21,7 @@
  * opposed to hierchical, nested, tree-structured math.
  * Wraps a single HTMLSpanElement.
  */
-class TextBlock extends MQNode {
+export class TextBlock extends MQNode {
   ctrlSeq = '\\text';
   ariaLabel = 'Text';
   replacedText?: string;
@@ -305,7 +318,7 @@ function TextBlockFuseChildren(self: TextBlock) {
  * mirroring the text contents of the DOMTextNode.
  * Text contents must always be nonempty.
  */
-class TextPiece extends MQNode {
+export class TextPiece extends MQNode {
   textStr: string;
 
   constructor(text: string) {
@@ -483,7 +496,7 @@ LatexCmds.lowercase = makeTextBlock('\\lowercase', 'Lowercase', 'span', {
   class: 'mq-text-mode'
 });
 
-class RootMathCommand extends MathCommand {
+export class RootMathCommand extends MathCommand {
   cursor: Cursor;
   constructor(cursor: Cursor) {
     super('$');
@@ -516,7 +529,7 @@ class RootMathCommand extends MathCommand {
   }
 }
 
-class RootTextBlock extends RootMathBlock {
+export class RootTextBlock extends RootMathBlock {
   keystroke(key: string, e: KeyboardEvent, ctrlr: Controller) {
     if (key === 'Spacebar' || key === 'Shift-Spacebar') return;
     return super.keystroke(key, e, ctrlr);

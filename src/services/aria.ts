@@ -1,3 +1,11 @@
+import { h } from '../dom';
+import { domFrag } from '../domFragment';
+import { prayDirection, L, R } from '../utils';
+import { MQNode } from './mqnode';
+import type { Fragment } from '../tree';
+import type { Controller } from './textarea';
+import type { Direction } from '../utils';
+
 /*****************************************
 
  * Add the capability for mathquill to generate ARIA alerts. Necessary so MQ can convey information as a screen reader user navigates the fake MathQuill textareas.
@@ -11,9 +19,9 @@
  * Chrome 54+ on Android works reliably with Talkback.
  ****************************************/
 
-type AriaQueueItem = NodeRef | Fragment | string;
+export type AriaQueueItem = NodeRef | Fragment | string;
 
-class Aria {
+export class Aria {
   controller: Controller;
   span = h('span', {
     class: 'mq-aria-alert',

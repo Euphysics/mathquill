@@ -1,3 +1,14 @@
+import { L, R } from './utils';
+import type { Direction } from './utils';
+import type { Ends } from './utils';
+import { h } from './dom';
+import { U_ZERO_WIDTH_SPACE } from './unicode';
+import { domFrag, DOMFragment } from './domFragment';
+import { Point, Fragment, NodeBase } from './tree';
+import { MathCommand, MathBlock } from './commands/math';
+import type { Controller } from './services/textarea';
+import type { MQNode } from './services/mqnode';
+
 /********************************************
  * Cursor and Selection "singleton" classes
  *******************************************/
@@ -10,7 +21,7 @@ textbox, but any one HTML document can contain many such textboxes, so any one
 JS environment could actually contain many instances. */
 
 //A fake cursor in the fake textbox that the math is rendered in.
-class Anticursor extends Point {
+export class Anticursor extends Point {
   ancestors: Record<string | number, Anticursor | MQNode | undefined> = {};
   constructor(parent: MQNode, leftward: NodeRef, rightward: NodeRef) {
     super(parent, leftward, rightward);
@@ -21,7 +32,7 @@ class Anticursor extends Point {
   }
 }
 
-class Cursor extends Point {
+export class Cursor extends Point {
   controller: Controller;
   parent: MQNode;
   options: CursorOptions;
@@ -321,10 +332,10 @@ class Cursor extends Point {
     if (leftEnd instanceof Point) leftEnd = leftEnd[R];
     if (rightEnd instanceof Point) rightEnd = rightEnd[L];
 
-    this.hide().selection = lca.selectChildren(
-      leftEnd as MQNode,
-      rightEnd as MQNode
-    );
+    this.hide().selection =
+      lca instanceof MathCommand
+        ? new MQSelection(lca, lca)
+        : new MQSelection(leftEnd as MQNode, rightEnd as MQNode);
 
     var insEl = this.selection!.getEnd(dir);
     this.insDirOf(dir, insEl);
@@ -384,7 +395,7 @@ class Cursor extends Point {
   // can be overridden
   selectionChanged() {}
 }
-class MQSelection extends Fragment {
+export class MQSelection extends Fragment {
   protected ends: Ends<MQNode>;
   private _el: HTMLElement | undefined;
 

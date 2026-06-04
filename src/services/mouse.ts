@@ -1,3 +1,11 @@
+import { Controller_latex } from './latex';
+import { Options } from '../options';
+import { ControllerBase, findControllerRoot } from '../controller';
+import { closest } from '../dom';
+import { NodeBase } from '../tree';
+import { L, R } from '../utils';
+import type { Cursor } from '../cursor';
+
 /********************************************************
  * Deals with mouse events for clicking, drag-to-select
  *******************************************************/
@@ -14,7 +22,7 @@ Options.prototype.askIfShouldIgnoreMousemove = askIfShouldIgnoreMousemoveNoop;
 // Whenever edits to the tree occur, in-progress selection events
 // must be invalidated and selection changes must not be applied to
 // the edited tree. cancelSelectionOnEdit takes care of this.
-var cancelSelectionOnEdit:
+export var cancelSelectionOnEdit:
   | undefined
   | {
       cb: () => void;
@@ -35,7 +43,7 @@ var cancelSelectionOnEdit:
   });
 })();
 
-class Controller_mouse extends Controller_latex {
+export class Controller_mouse extends Controller_latex {
   private handleMouseDown = (e: MouseEvent) => {
     const rootElement = closest(
       e.target as HTMLElement | null,
@@ -187,14 +195,4 @@ class Controller_mouse extends Controller_latex {
     // always hits no-selection case in scrollHoriz and scrolls slower
     return this;
   }
-}
-
-function findControllerRoot(node: NodeBase) {
-  while (node) {
-    if (ControllerBase.isControllerRoot(node)) {
-      return node;
-    }
-    node = node.parent;
-  }
-  return undefined;
 }

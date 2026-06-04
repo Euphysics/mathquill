@@ -1,3 +1,8 @@
+import { Controller_exportText } from './exportText';
+import { ControllerBase } from '../controller';
+import { domFrag } from '../domFragment';
+import { L } from '../utils';
+
 ControllerBase.onNotify(function (cursor, e) {
   // these try to cover all ways that mathquill can be modified
   if (e === 'edit' || e === 'replace' || e === undefined) {
@@ -15,7 +20,7 @@ ControllerBase.onNotify(function (cursor, e) {
   }
 });
 
-class Controller_focusBlur extends Controller_exportText {
+export class Controller_focusBlur extends Controller_exportText {
   blurred: boolean;
   __showGroupingTimeout: number;
   textareaSelectionTimeout: number;

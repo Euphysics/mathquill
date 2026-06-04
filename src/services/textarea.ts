@@ -1,3 +1,10 @@
+import { Controller_scrollHoriz } from './scrollHoriz';
+import { Options } from '../options';
+import { h } from '../dom';
+import { domFrag } from '../domFragment';
+import { saneKeyboardEvents } from './saneKeyboardEvents.util';
+import { noop } from '../utils';
+
 /*********************************************
  * Manage the MathQuill instance's textarea
  * (as owned by the Controller)
@@ -13,7 +20,7 @@ Options.prototype.substituteTextarea = function () {
 };
 
 /* A light-weight function to generate a UUID */
-function generateUUID(): string {
+export function generateUUID(): string {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
     const r = (Math.random() * 16) | 0;
     const v = c === 'x' ? r : (r & 0x3) | 0x8;
@@ -21,12 +28,12 @@ function generateUUID(): string {
   });
 }
 
-function defaultSubstituteKeyboardEvents(jq: $, controller: Controller) {
+export function defaultSubstituteKeyboardEvents(jq: $, controller: Controller) {
   return saneKeyboardEvents(jq[0] as HTMLTextAreaElement, controller);
 }
 Options.prototype.substituteKeyboardEvents = defaultSubstituteKeyboardEvents;
 
-class Controller extends Controller_scrollHoriz {
+export class Controller extends Controller_scrollHoriz {
   selectFn: (text: string) => void = noop;
 
   previousTabindex: number | undefined;

@@ -1,4 +1,6 @@
-function parseError(stream: string, message: string): never {
+import { pray } from '../utils';
+
+export function parseError(stream: string, message: string): never {
   if (stream) {
     stream = "'" + stream + "'";
   } else {
@@ -8,15 +10,15 @@ function parseError(stream: string, message: string): never {
   throw 'Parse Error: ' + message + ' at ' + stream;
 }
 
-type UnknownParserResult = any;
+export type UnknownParserResult = any;
 
-type ParserBody<T> = (
+export type ParserBody<T> = (
   stream: string,
   onSuccess: (stream: string, result: T) => UnknownParserResult,
   onFailure: (stream: string, msg: string) => UnknownParserResult
 ) => T;
 
-class Parser<T> {
+export class Parser<T> {
   _: ParserBody<T>;
 
   // The Parser object is a wrapper for a parser function.
