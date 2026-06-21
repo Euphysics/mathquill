@@ -26,12 +26,12 @@
     "server": "node script/test_server.js"
   },
   "devDependencies": {
-    "@tsdown/css": "^0.22.1",
+    "@tsdown/css": "^0.22.3",
     "@types/mocha": "^10.0.10",
-    "less": "^4.6.4",
+    "less": "^4.6.6",
     "mocha": "^11.7.6",
-    "oxfmt": "^0.52.0",
-    "tsdown": "^0.22.1",
+    "oxfmt": "^0.55.0",
+    "tsdown": "^0.22.3",
     "typescript": "^6.0.3"
   }
 }
