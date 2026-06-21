@@ -1,7 +1,7 @@
 import { Controller_mouse } from './mouse';
 import { getBoundingClientRect } from '../browser';
 import { animate } from '../animate';
-import { L } from '../utils';
+import { L, R } from '../utils';
 
 /***********************************************
  * Horizontal panning for editable fields that

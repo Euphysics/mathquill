@@ -83,4 +83,3 @@ export default defineConfig([
     outDir: 'build'
   }
 ]);
-

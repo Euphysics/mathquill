@@ -2,14 +2,14 @@ import { MQNode } from './mqnode';
 import { Controller_keystroke } from './keystroke';
 import { Parser } from './parser.util';
 import { MathBlock } from '../commands/math';
-import { LatexCmds, CharCmds, Fragment, NodeBase } from '../tree';
-import { Letter, Digit, VanillaSymbol, LatexFragment } from '../commands/math/basicSymbols';
+import { LatexCmds, Fragment, NodeBase } from '../tree';
+import { Letter, Digit, VanillaSymbol } from '../commands/math/basicSymbols';
 import { baseOptionProcessors } from '../optionProcessors';
 import { findControllerRoot } from '../controller';
 import { L, R } from '../utils';
-import { domFrag, DOMFragment } from '../domFragment';
+import { domFrag } from '../domFragment';
 import { latexParserRef } from '../latexParserRef';
-import type { Cursor } from '../cursor';
+import { RootMathCommand } from '../commands/text';
 
 export class TempSingleCharNode extends MQNode {
   constructor(_char: string) {

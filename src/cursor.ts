@@ -1,13 +1,15 @@
-import { L, R } from './utils';
+import { L, pray, prayDirection, R } from './utils';
 import type { Direction } from './utils';
 import type { Ends } from './utils';
 import { h } from './dom';
 import { U_ZERO_WIDTH_SPACE } from './unicode';
 import { domFrag, DOMFragment } from './domFragment';
-import { Point, Fragment, NodeBase } from './tree';
+import { Point, Fragment } from './tree';
 import { MathCommand, MathBlock } from './commands/math';
 import type { Controller } from './services/textarea';
 import type { MQNode } from './services/mqnode';
+import { getBoundingClientRect } from './browser';
+import type { ControllerBase } from './controller';
 
 /********************************************
  * Cursor and Selection "singleton" classes

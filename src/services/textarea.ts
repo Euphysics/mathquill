@@ -4,6 +4,7 @@ import { h } from '../dom';
 import { domFrag } from '../domFragment';
 import { saneKeyboardEvents } from './saneKeyboardEvents.util';
 import { noop } from '../utils';
+import { MQNode } from './mqnode';
 
 /*********************************************
  * Manage the MathQuill instance's textarea

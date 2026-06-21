@@ -68,7 +68,8 @@ type APIClassBuilders = {
 
 export var API: APIClassBuilders = {};
 
-export var EMBEDS: Record<string, (data: EmbedOptionsData) => EmbedOptions> = {};
+export var EMBEDS: Record<string, (data: EmbedOptionsData) => EmbedOptions> =
+  {};
 
 export const processedOptions = {
   handlers: true,

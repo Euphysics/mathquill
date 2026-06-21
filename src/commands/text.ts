@@ -1,13 +1,17 @@
-import { MQNode, isMQNodeClass } from '../services/mqnode';
-import { MathCommand, MathBlock, RootMathBlock, MathElement, VanillaSymbol, DOMView, BinaryOperator, MQSymbol } from './math';
-import { LatexCmds, CharCmds, Fragment, NodeBase } from '../tree';
-import { L, R, pray } from '../utils';
+import { MQNode } from '../services/mqnode';
+import {
+  MathCommand,
+  MathBlock,
+  RootMathBlock,
+  VanillaSymbol,
+  DOMView
+} from './math';
+import { LatexCmds, Fragment, NodeBase } from '../tree';
+import { L, R, pray, prayDirection } from '../utils';
 import type { Direction } from '../utils';
-import { h } from '../dom';
-import { domFrag } from '../domFragment';
-import { U_NO_BREAK_SPACE } from '../unicode';
+import { h, HTMLTagName } from '../dom';
 import { Parser } from '../services/parser.util';
-import type { Cursor } from '../cursor';
+import { Anticursor, type Cursor } from '../cursor';
 import type { LatexContext } from '../services/latex';
 import type { Controller } from '../services/textarea';
 

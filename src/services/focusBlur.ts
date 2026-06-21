@@ -1,7 +1,6 @@
 import { Controller_exportText } from './exportText';
 import { ControllerBase } from '../controller';
 import { domFrag } from '../domFragment';
-import { L } from '../utils';
 
 ControllerBase.onNotify(function (cursor, e) {
   // these try to cover all ways that mathquill can be modified

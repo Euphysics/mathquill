@@ -1,4 +1,13 @@
-import { MQSymbol, MathCommand, MathBlock, BinaryOperator, bindBinaryOperator, VanillaSymbol, bindVanillaSymbol, DOMView } from '../math';
+import {
+  MQSymbol,
+  MathCommand,
+  MathBlock,
+  BinaryOperator,
+  bindBinaryOperator,
+  VanillaSymbol,
+  bindVanillaSymbol,
+  DOMView
+} from '../math';
 export { VanillaSymbol } from '../math';
 import { LatexCmds, CharCmds, Fragment } from '../../tree';
 import { baseOptionProcessors } from '../../optionProcessors';
@@ -14,7 +23,13 @@ import { Parser } from '../../services/parser.util';
 import { latexParserRef } from '../../latexParserRef';
 import { letterDigitRef } from './letterDigitRef';
 // AnsBuilder, PercentOfBuilder, SupSub, Bracket, SummationNotation, TempSingleCharNode are imported lazily (only used in method bodies) — safe circular dep
-import { AnsBuilder, PercentOfBuilder, SupSub, Bracket, SummationNotation } from './commands';
+import {
+  AnsBuilder,
+  PercentOfBuilder,
+  SupSub,
+  Bracket,
+  SummationNotation
+} from './commands';
 import { TempSingleCharNode } from '../../services/latex';
 import type { MQNode } from '../../services/mqnode';
 import type { Cursor } from '../../cursor';

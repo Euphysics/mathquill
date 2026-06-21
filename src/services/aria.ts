@@ -1,6 +1,6 @@
 import { h } from '../dom';
 import { domFrag } from '../domFragment';
-import { prayDirection, L, R } from '../utils';
+import { prayDirection, L } from '../utils';
 import { MQNode } from './mqnode';
 import type { Fragment } from '../tree';
 import type { Controller } from './textarea';

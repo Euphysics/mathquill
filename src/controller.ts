@@ -3,6 +3,8 @@ import type { Direction } from './utils';
 import { Aria } from './services/aria';
 import { Cursor } from './cursor';
 import { NodeBase } from './tree';
+import { KIND_OF_MQ } from './publicapi';
+import { Controller } from './services/textarea';
 
 export type TextareaKeyboardEventListeners = Partial<{
   [K in keyof HTMLElementEventMap]: (event: HTMLElementEventMap[K]) => any;

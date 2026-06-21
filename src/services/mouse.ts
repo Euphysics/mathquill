@@ -1,10 +1,10 @@
 import { Controller_latex } from './latex';
 import { Options } from '../options';
-import { ControllerBase, findControllerRoot } from '../controller';
+import { ControllerBase } from '../controller';
 import { closest } from '../dom';
 import { NodeBase } from '../tree';
-import { L, R } from '../utils';
 import type { Cursor } from '../cursor';
+import { noop } from '../utils';
 
 /********************************************************
  * Deals with mouse events for clicking, drag-to-select

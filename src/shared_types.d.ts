@@ -5,6 +5,7 @@ import type { Controller } from './services/textarea';
 import type { Options } from './options';
 import type { TempSingleCharNode } from './services/latex';
 import type { LatexFragment } from './commands/math/basicSymbols';
+import type { L, R } from './utils';
 
 declare global {
   type NodeRef = MQNode | 0;

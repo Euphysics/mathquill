@@ -1,17 +1,36 @@
-import { MathCommand, MQSymbol, MathBlock, DOMView, RootMathBlock } from '../math';
+import {
+  MathCommand,
+  MQSymbol,
+  MathBlock,
+  DOMView,
+  RootMathBlock
+} from '../math';
 import { LatexCmds, CharCmds, Fragment, NodeBase, Point } from '../../tree';
 import { L, R, pray, noop } from '../../utils';
 import type { Direction, Ends } from '../../utils';
 import { h, parseHTML } from '../../dom';
 import type { HTMLTagName } from '../../dom';
 import { domFrag, DOMFragment } from '../../domFragment';
-import { U_NARY_SUMMATION, U_NARY_PRODUCT, U_NARY_COPRODUCT, U_INTEGRAL, U_DOT_ABOVE, U_ZERO_WIDTH_SPACE } from '../../unicode';
+import {
+  U_NARY_SUMMATION,
+  U_NARY_PRODUCT,
+  U_NARY_COPRODUCT,
+  U_INTEGRAL,
+  U_DOT_ABOVE,
+  U_ZERO_WIDTH_SPACE
+} from '../../unicode';
 import { Parser } from '../../services/parser.util';
 import { latexParserRef } from '../../latexParserRef';
 import { Options } from '../../options';
 import { Controller } from '../../services/textarea';
-import { RootBlockMixin } from '../../publicapi';
-import { Letter, DigitGroupingChar, nodeEndsBinaryOperator, Equality, Digit } from './basicSymbols';
+import { EMBEDS, RootBlockMixin } from '../../publicapi';
+import {
+  Letter,
+  DigitGroupingChar,
+  nodeEndsBinaryOperator,
+  Equality,
+  Digit
+} from './basicSymbols';
 import { MQNode } from '../../services/mqnode';
 import type { Cursor, Anticursor } from '../../cursor';
 

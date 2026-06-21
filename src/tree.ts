@@ -3,8 +3,9 @@ import type { Direction, Ends } from './utils';
 import { domFrag, DOMFragment } from './domFragment';
 import type { Cursor } from './cursor';
 import type { MQNode } from './services/mqnode';
-import type { MathCommand } from './commands/math';
+import type { MathBlock, MathCommand } from './commands/math';
 import type { TextBlock } from './commands/text';
+import type { Parser } from './services/parser.util';
 
 /*************************************************
  * Base classes of edit tree-related objects
